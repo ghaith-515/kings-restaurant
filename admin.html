@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>Admin - Kings Restaurant</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{font-family:Tajawal,Arial;background:#111;color:#fff;padding:20px;}
+h2{color:#d4af37;}
+input, select{margin:5px 0;padding:5px;width:100%;border-radius:5px;border:none;}
+button{background:#d4af37;color:#000;padding:8px 12px;border:none;border-radius:5px;cursor:pointer;margin-top:10px;}
+.item{background:#222;padding:10px;margin:10px 0;border-radius:8px;}
+.hidden{display:none;}
+</style>
+</head>
+<body>
+
+<div id="loginDiv">
+<h2>تسجيل دخول الآدمن</h2>
+<label>اسم المستخدم:</label>
+<input type="text" id="username">
+<label>كلمة المرور:</label>
+<input type="password" id="password">
+<button onclick="login()">تسجيل دخول</button>
+</div>
+
+<div id="adminDiv" class="hidden">
+
+<h2>الأصناف</h2>
+<button onclick="toggleItems()" style="margin-bottom:10px;">إظهار/إخفاء إدارة الأصناف</button>
+
+<div id="itemsDiv" class="hidden">
+  <label>الاسم بالعربية:</label>
+  <input type="text" id="nameAr">
+  <label>الاسم بالإنجليزية:</label>
+  <input type="text" id="nameEn">
+  <label>السعر ($):</label>
+  <input type="number" id="price">
+  <label>اسم ملف الصورة داخل مجلد images:</label>
+  <input type="text" id="imgFileName" placeholder="مثال: pizza.jpg">
+  <label>التصنيف:</label>
+  <select id="category">
+    <option value="app">مقبلات</option>
+    <option value="west">غربي</option>
+    <option value="east">شرقي</option>
+    <option value="drink">مشروبات</option>
+  </select>
+  <button onclick="addItem()">إضافة صنف جديد</button>
+</div>
+
+<h2>معلومات التواصل</h2>
+<button onclick="toggleContact()" style="margin-bottom:10px;">إظهار/إخفاء إدارة معلومات التواصل</button>
+
+<div id="contactDiv" class="hidden item">
+  <label>رقم التواصل:</label>
+  <input type="text" id="adminPhone" placeholder="رقم التواصل">
+
+  <label>البريد الإلكتروني:</label>
+  <input type="email" id="adminEmail" placeholder="البريد الإلكتروني">
+
+  <label>الموقع / العنوان:</label>
+  <input type="text" id="adminLocation" placeholder="الموقع / العنوان">
+
+  <button onclick="updateContactInfo()">حفظ المعلومات</button>
+  <button onclick="clearContactInfo()" style="background:#c0392b;color:#fff">
+    حذف المعلومات
+  </button>
+</div>
+
+<h2>إعدادات الحساب</h2>
+<button onclick="toggleCreds()" style="margin-bottom:10px;">
+تغيير اسم المستخدم / كلمة المرور
+</button>
+
+<div id="credDiv" class="item hidden" style="margin-right:0; margin-left:auto; width:50%;">
+  <label>كلمة المرور الحالية:</label>
+  <input type="password" id="oldPassword">
+
+  <label>اسم المستخدم الجديد:</label>
+  <input type="text" id="newUsername">
+
+  <label>كلمة المرور الجديدة:</label>
+  <input type="password" id="newPassword">
+
+  <button onclick="updateCredentials()">حفظ التغييرات</button>
+</div>
+
+<h2>قائمة الأصناف الحالية</h2>
+<button onclick="toggleItemList()" style="margin-bottom:10px;">
+  إظهار/إخفاء قائمة الأصناف
+</button>
+<div id="itemListDiv" class="hidden">
+  <div id="itemList"></div>
+</div>
+
+<button onclick="logout()" style="display:block; margin-top:10px;">
+  تسجيل خروج
+</button>
+
+<script>
+// إعدادات الافتراضية
+let items = JSON.parse(localStorage.getItem('items')) || [];
+let adminUsername = localStorage.getItem('adminUsername') || "admin";
+let adminPassword = localStorage.getItem('adminPassword') || "1234";
+let contactInfo = JSON.parse(localStorage.getItem("contactInfo")) || {phone:"", email:"", location:""};
+
+const loginDiv = document.getElementById('loginDiv');
+const adminDiv = document.getElementById('adminDiv');
+
+function login(){
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    if(user === adminUsername && pass === adminPassword){
+        loginDiv.classList.add('hidden');
+        adminDiv.classList.remove('hidden');
+        renderItems();
+        loadContactInfo();
+        alert('تم تسجيل الدخول');
+    } else alert('اسم المستخدم أو كلمة المرور خاطئة');
+}
+
+function logout(){
+    loginDiv.classList.remove('hidden');
+    adminDiv.classList.add('hidden');
+    document.getElementById('username').value="";
+    document.getElementById('password').value="";
+}
+
+// عرض قائمة الأصناف
+function renderItems(){
+    const listDiv = document.getElementById('itemList');
+    listDiv.innerHTML = '';
+    items.forEach((item,index)=>{
+        listDiv.innerHTML += `<div class="item">
+        ${item.ar} - ${item.en} - ${item.p}$ - ${item.c} - <img src="${item.i}" width="50">
+        <button onclick="editItem(${index})">تعديل</button>
+        <button onclick="removeItem(${index})">حذف</button>
+        </div>`;
+    });
+}
+
+// إضافة صنف جديد
+function addItem(){
+    const ar = document.getElementById('nameAr').value.trim();
+    const en = document.getElementById('nameEn').value.trim();
+    const price = parseFloat(document.getElementById('price').value);
+    const category = document.getElementById('category').value;
+    const imgName = document.getElementById('imgFileName').value.trim();
+
+    if(!ar || !en || !price || !imgName){
+        alert('املأ جميع الحقول واختر اسم ملف الصورة');
+        return;
+    }
+
+    const imgPath = "images/" + imgName;
+    items.push({ar,en,p:price,c:category,i:imgPath});
+    localStorage.setItem('items', JSON.stringify(items));
+    renderItems();
+    alert('تمت الإضافة بنجاح');
+
+    document.getElementById('nameAr').value="";
+    document.getElementById('nameEn').value="";
+    document.getElementById('price').value="";
+    document.getElementById('imgFileName').value="";
+}
+
+// تعديل صنف
+function editItem(index){
+    const item = items[index];
+
+    const newAr = prompt("الاسم بالعربية:", item.ar);
+    if(newAr===null) return;
+
+    const newEn = prompt("الاسم بالإنجليزية:", item.en);
+    if(newEn===null) return;
+
+    const newPrice = prompt("السعر ($):", item.p);
+    if(newPrice===null || isNaN(newPrice)) { alert("سعر غير صالح"); return; }
+
+    const newImg = prompt("اسم ملف الصورة داخل مجلد images (اتركه فارغاً إذا لا تريد تغييره):", item.i.split("/").pop());
+    if(newImg) item.i = "images/" + newImg;
+
+    item.ar = newAr;
+    item.en = newEn;
+    item.p = parseFloat(newPrice);
+
+    localStorage.setItem('items', JSON.stringify(items));
+    renderItems();
+    alert("تم تعديل الصنف بنجاح");
+}
+
+// حذف صنف
+function removeItem(index){
+    if(confirm("هل تريد حذف هذا الصنف؟")){
+        items.splice(index,1);
+        localStorage.setItem('items', JSON.stringify(items));
+        renderItems();
+    }
+}
+
+// إدارة معلومات التواصل
+function loadContactInfo(){
+    document.getElementById("adminPhone").value = contactInfo.phone;
+    document.getElementById("adminEmail").value = contactInfo.email;
+    document.getElementById("adminLocation").value = contactInfo.location;
+}
+
+function updateContactInfo(){
+    const phone = document.getElementById("adminPhone").value.trim();
+    const email = document.getElementById("adminEmail").value.trim();
+    const location = document.getElementById("adminLocation").value.trim();
+
+    if(!phone || !email || !location){ alert("املأ جميع الحقول"); return; }
+
+    contactInfo = { phone, email, location };
+    localStorage.setItem("contactInfo", JSON.stringify(contactInfo));
+    alert("تم حفظ المعلومات");
+}
+
+function clearContactInfo(){
+    if(!confirm("هل أنت متأكد من حذف معلومات التواصل؟")) return;
+    contactInfo = { phone:"", email:"", location:"" };
+    localStorage.setItem("contactInfo", JSON.stringify(contactInfo));
+    loadContactInfo();
+    alert("تم حذف المعلومات");
+}
+
+// إعدادات الحساب
+function toggleCreds(){ document.getElementById("credDiv").classList.toggle("hidden"); }
+
+function updateCredentials(){
+    const oldPass = document.getElementById("oldPassword").value;
+    const newUser = document.getElementById("newUsername").value.trim();
+    const newPass = document.getElementById("newPassword").value.trim();
+
+    if(!oldPass || !newUser || !newPass){ alert("املأ جميع الحقول"); return; }
+    if(oldPass !== adminPassword){ alert("كلمة المرور الحالية خاطئة"); return; }
+
+    adminUsername = newUser;
+    adminPassword = newPass;
+    localStorage.setItem("adminUsername", adminUsername);
+    localStorage.setItem("adminPassword", adminPassword);
+
+    alert("تم تحديث بيانات الدخول بنجاح");
+
+    document.getElementById("oldPassword").value="";
+    document.getElementById("newUsername").value="";
+    document.getElementById("newPassword").value="";
+    document.getElementById("credDiv").classList.add("hidden");
+}
+
+// إظهار/إخفاء الأقسام
+function toggleItems(){ document.getElementById("itemsDiv").classList.toggle("hidden"); }
+function toggleContact(){ document.getElementById("contactDiv").classList.toggle("hidden"); }
+function toggleItemList(){ document.getElementById("itemListDiv").classList.toggle("hidden"); }
+
+</script>
+</body>
+</html>

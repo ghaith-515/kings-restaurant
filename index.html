@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>Kings Restaurant</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root{
+--bg:#0d0d0d;
+--card:#1b1b1b;
+--gold:#d4af37;
+}
+*{box-sizing:border-box}
+body{
+margin:0;
+font-family:Tajawal,Arial;
+background:var(--bg);
+color:#fff;
+transition:.3s;
+}
+header{
+background:#000;
+padding:15px 20px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+position:sticky;
+top:0;
+z-index:10;
+}
+.logo{color:var(--gold);font-size:26px;font-weight:bold}
+.actions{display:flex;gap:15px;align-items:center}
+.lang-btn{background:var(--gold);border:none;padding:6px 10px;border-radius:6px;cursor:pointer}
+.cart-icon{cursor:pointer;position:relative;font-size:22px}
+.cart-count{
+position:absolute;top:-8px;left:-8px;
+background:red;border-radius:50%;
+font-size:12px;padding:2px 6px;
+}
+
+.hero{
+background:url("https://images.unsplash.com/photo-1600891964599-f61ba0e24092") center/cover;
+height:220px;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+.hero h1{
+background:rgba(0,0,0,.6);
+padding:15px 25px;
+border-radius:10px;
+color:var(--gold);
+}
+
+.search{text-align:center;padding:15px}
+.search input{
+width:85%;padding:12px;border-radius:25px;border:none;
+}
+
+.tabs{
+display:flex;
+justify-content:center;
+flex-wrap:wrap;
+gap:10px;
+padding-bottom:10px;
+}
+.tabs button{
+background:#222;color:#fff;border:none;
+padding:10px 20px;border-radius:20px;cursor:pointer
+}
+.tabs .active{background:var(--gold);color:#000}
+
+.menu{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+gap:20px;
+padding:20px;
+}
+.card{
+background:var(--card);
+border-radius:15px;
+overflow:hidden;
+transition:.3s;
+}
+.card:hover{transform:scale(1.05)}
+.card img{
+width:100%;height:150px;object-fit:cover
+}
+.card div{padding:10px}
+.card button{
+width:100%;margin-top:8px
+}
+
+/* CART */
+.cart{
+position:fixed;
+top:0;
+right:-100%;
+width:350px;
+height:100%;
+background:#111;
+padding:15px;
+transition:.4s;
+overflow:auto;
+z-index:20;
+}
+.cart.open{right:0}
+.cart h2{text-align:center;color:var(--gold)}
+.close{background:red;color:#fff;border:none;padding:5px 10px;border-radius:6px;cursor:pointer}
+.cart-item{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:10px;
+background:#1e1e1e;
+padding:8px;border-radius:8px
+}
+.cart-item button{
+background:red;border:none;color:#fff;
+padding:3px 6px;border-radius:5px;cursor:pointer
+}
+.clear-cart, .confirm-btn{
+width:100%;
+padding:10px;
+margin-top:10px;
+background:#d40000;
+color:#fff;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+.confirm-btn{background:#28a745;}
+.delivery{
+margin-top:10px;padding:10px;background:#222;border-radius:8px;text-align:center;
+}
+.delivery input{
+width:60px;text-align:center;border-radius:5px;padding:3px;border:none;margin-left:5px;
+}
+.payment{
+margin-top:10px;padding:10px;background:#222;border-radius:8px;text-align:center;display:none;
+}
+footer{text-align:center;color:#888;padding:15px}
+/* PREMIUM HOVER EFFECT */
+.card{
+    transition: transform .35s ease, box-shadow .35s ease;
+    cursor: pointer;
+}
+.card:hover{
+    transform: scale(1.12);
+    box-shadow: 0 15px 40px rgba(212, 175, 55, 0.45);
+    z-index: 5;
+}
+.card img{
+    transition: transform .35s ease;
+}
+.card:hover img{
+    transform: scale(1.1);
+}
+.added{
+  background:#28a745 !important;
+  color:#fff;
+}
+.about{
+  padding:30px 20px;
+  text-align:center;
+  background:#111;
+  margin:20px;
+  border-radius:15px;
+}
+.about h2{
+  color:var(--gold);
+  margin-bottom:10px;
+}
+.about p{
+  color:#ddd;
+  line-height:1.8;
+  font-size:16px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="logo" id="title">مطعم الملوك</div>
+<div class="actions">
+<button class="lang-btn" onclick="toggleLang()">EN</button>
+<div class="cart-icon" onclick="toggleCart()">🛒
+<span class="cart-count" id="cartCount">0</span>
+</div>
+</div>
+</header>
+
+<div class="hero">
+<h1 id="heroText">ألذ المأكولات الشرقية والغربية</h1>
+</div>
+<section class="about" id="about">
+  <h2 id="aboutTitle">من نحن</h2>
+  <p id="aboutText">
+    مطعم الملوك هو وجهتكم الأولى لتجربة أشهى المأكولات الشرقية والغربية،
+    نقدّم أطباقنا بأعلى معايير الجودة وبمكونات طازجة،
+    مع خدمة راقية تناسب جميع الأذواق.
+  </p>
+</section>
+<div class="search">
+<input id="search" placeholder="ابحث عن وجبتك..." onkeyup="searchItem(this.value)">
+</div>
+
+<div class="tabs">
+<button class="active" onclick="filterCat('all',this)" data-ar="الكل" data-en="All">الكل</button>
+<button onclick="filterCat('app',this)" data-ar="مقبلات" data-en="Appetizers">مقبلات</button>
+<button onclick="filterCat('west',this)" data-ar="غربي" data-en="Western">غربي</button>
+<button onclick="filterCat('east',this)" data-ar="شرقي" data-en="Eastern">شرقي</button>
+<button onclick="filterCat('drink',this)" data-ar="مشروبات" data-en="Drinks">مشروبات</button>
+</div>
+
+<div class="menu" id="menu"></div>
+
+<!-- CART -->
+<div class="cart" id="cart">
+<button class="close" onclick="toggleCart()">✖</button>
+<h2 id="cartTitle">سلة الطلب</h2>
+<div id="cartItems"></div>
+<hr>
+<div class="delivery">
+<label for="distance">كمية التوصيل (كم):</label>
+<input type="number" id="distance" value="0" min="0" oninput="updateCart()">
+</div>
+<p id="total">المجموع: 0$</p>
+<button class="clear-cart" onclick="clearCart()">مسح السلة</button>
+<div class="delivery">
+  <label>
+    <input type="radio" name="orderType" value="delivery" checked onchange="toggleOrderType()">
+    توصيل
+  </label>
+  <label style="margin-right:10px">
+    <input type="radio" name="orderType" value="pickup" onchange="toggleOrderType()">
+    استلام
+  </label>
+</div>
+
+<div class="delivery" id="customerInfo">
+  <input type="text" id="custName" placeholder="الاسم الكامل" style="width:100%;margin-bottom:8px">
+  
+  <div id="deliveryFields">
+    <input 
+  type="tel"
+  id="custPhone"
+  placeholder="رقم الهاتف"
+  inputmode="numeric"
+  pattern="[0-9]*"
+  oninput="this.value = this.value.replace(/[^0-9]/g,'')"
+  style="width:100%;margin-bottom:8px"
+>
+    <input type="text" id="custLocation" placeholder="الموقع / العنوان" style="width:100%">
+  </div>
+</div>
+<button class="confirm-btn" onclick="showPayment()">تأكيد الطلب</button>
+
+<div class="payment" id="paymentDiv">
+<h3>اختر طريقة الدفع:</h3>
+
+<label><input type="radio" name="payMethod" value="cash" checked> نقدًا</label><br>
+<label><input type="radio" name="payMethod" value="card"> بطاقة</label><br>
+<button class="confirm-btn" onclick="confirmOrder()">إرسال الطلب</button>
+</div>
+</div>
+
+<footer>
+  <div id="contactInfoFooter">
+    <p id="contactPhone"></p>
+    <p id="contactEmail"></p>
+    <p id="contactLocation"></p>
+  </div>
+  © Kings Restaurant 2025
+</footer>
+
+<script>
+// قراءة الأصناف وسعر التوصيل من localStorage
+let lang="ar";
+let cart=[];
+let currentCat="all";
+
+let items = JSON.parse(localStorage.getItem('items')) || [
+{ar:"سلطة سيزر",en:"Caesar Salad",p:15,c:"app",i:"images/kp"},
+{ar:"تبولة",en:"Tabbouleh",p:10,c:"app",i:"https://images.unsplash.com/photo-1604908812168-7a6a7e91b5c4"},
+{ar:"حمص",en:"Hummus",p:9,c:"app",i:"https://images.unsplash.com/photo-1617191517004-07f7a0b6c1d3"},
+{ar:"برغر",en:"Burger",p:25,c:"west",i:"https://images.unsplash.com/photo-1550547660-d9450f859349"},
+{ar:"كباب",en:"Kebab",p:35,c:"east",i:"https://images.unsplash.com/photo-1617196034183-421b4917c92d"},
+{ar:"ماء",en:"Water",p:3,c:"drink",i:"https://images.unsplash.com/photo-1523362628745-0c100150b7a7"}
+];
+
+let deliveryPrice = parseFloat(localStorage.getItem('deliveryPrice')) || 1;
+document.getElementById('distance').value = 0;
+
+function render(list){
+    const menu = document.getElementById("menu");
+    menu.innerHTML = "";
+    list.forEach(x => {
+        menu.innerHTML += `
+        <div class="card">
+            <img src="${x.i}">
+            <div>
+                <h4>${lang === "ar" ? x.ar : x.en}</h4>
+                <p>${x.p}$</p>
+                <button onclick="addToCart('${lang === "ar" ? x.ar : x.en}', ${x.p}, this)">
+                    ${lang === "ar" ? "إضافة للسلة" : "Add to Cart"}
+                </button>
+            </div>
+        </div>`;
+    });
+}
+render(items);
+
+function filterCat(cat,btn){
+    document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    currentCat=cat;
+    render(cat==="all"?items:items.filter(i=>i.c===cat));
+}
+
+function searchItem(v){
+    let list=items.filter(i=>
+        (currentCat==="all"||i.c===currentCat)&&
+        (i.ar.includes(v)||i.en.toLowerCase().includes(v.toLowerCase()))
+    );
+    render(list);
+}
+
+function addToCart(name, price, btn){
+    const item = cart.find(i=>i.name===name);
+    item ? item.qty++ : cart.push({name, price, qty:1});
+    updateCart();
+
+    btn.classList.add("added");
+    btn.innerText = lang==="ar" ? "تمت الإضافة ✔" : "Added ✔";
+
+    setTimeout(()=>{
+        btn.classList.remove("added");
+        btn.innerText = lang==="ar" ? "إضافة للسلة" : "Add to Cart";
+    },1000);
+}
+
+function updateCart(){
+    const cartItems = document.getElementById("cartItems");
+    const cartCount = document.getElementById("cartCount");
+    const total = document.getElementById("total");
+    const distance = parseFloat(document.getElementById("distance").value)||0;
+
+    cartItems.innerHTML="";
+    let totalPrice = 0;
+    cart.forEach((i, idx)=>{
+        totalPrice += i.price * i.qty;
+        cartItems.innerHTML += `
+        <div class="cart-item">
+            <span>${i.name} - ${i.price}$ x ${i.qty}</span>
+            <button onclick="removeItem(${idx})">✖</button>
+        </div>`;
+    });
+
+    let deliveryCost = distance * deliveryPrice;
+    total.innerText = (lang==="ar"?"المجموع: ":"Total: ")+(totalPrice + deliveryCost)+"$" +
+                      ` (${lang==="ar"?"توصيل: ":"Delivery: "} ${deliveryCost}$)`;
+    cartCount.innerText = cart.reduce((sum,i)=>sum+i.qty,0);
+}
+
+function removeItem(idx){
+    if(cart[idx].qty > 1){
+        cart[idx].qty -= 1;
+    }else{
+        cart.splice(idx,1);
+    }
+    updateCart();
+}
+
+function clearCart(){
+    cart=[];
+    updateCart();
+    document.getElementById("paymentDiv").style.display="none";
+}
+
+function toggleCart(){
+    const cartDiv = document.getElementById("cart");
+    cartDiv.classList.toggle("open");
+}
+
+function toggleLang(){
+    lang=lang==="ar"?"en":"ar";
+    document.documentElement.dir=lang==="ar"?"rtl":"ltr";
+    document.querySelector(".lang-btn").innerText=lang==="ar"?"EN":"AR";
+    title.innerText=lang==="ar"?"مطعم الملوك":"Kings Restaurant";
+    heroText.innerText=lang==="ar"?
+        "أفخم المأكولات الشرقية والغربية":
+        "Finest Eastern & Western Cuisine";
+    search.placeholder=lang==="ar"?"ابحث عن وجبتك...":"Search your meal...";
+    cartTitle.innerText=lang==="ar"?"سلة الطلب":"Your Cart";
+    // تبديل أسماء التبويبات
+document.querySelectorAll(".tabs button").forEach(btn=>{
+    btn.innerText = lang === "ar" ? btn.dataset.ar : btn.dataset.en;
+});
+aboutTitle.innerText = lang==="ar" ? "من نحن" : "About Us";
+aboutText.innerText = lang==="ar"
+  ? "مطعم الملوك هو وجهتكم الأولى لتجربة أشهى المأكولات الشرقية والغربية، نقدّم أطباقنا بأعلى معايير الجودة وبمكونات طازجة، مع خدمة راقية تناسب جميع الأذواق."
+  : "Kings Restaurant is your premier destination for the finest Eastern and Western cuisine, offering fresh ingredients, top quality, and exceptional service.";
+    render(currentCat==="all"?items:items.filter(i=>i.c===currentCat));
+    updateCart();
+}
+
+function showPayment(){
+    if(cart.length === 0){
+        alert(lang==="ar"?"السلة فارغة!":"Cart is empty!");
+        return;
+    }
+    document.getElementById("paymentDiv").style.display = "block";
+}
+
+function confirmOrder(){
+    const distance = parseFloat(document.getElementById("distance").value)||0;
+    const totalAmount = cart.reduce((sum,i)=>sum+i.price*i.qty,0) + distance*deliveryPrice;
+    const paymentMethod = document.querySelector('input[name="payMethod"]:checked').value;
+    alert((lang==="ar"?
+        `تم استلام طلبك!\nطريقة الدفع: ${paymentMethod==="cash"?"نقدًا":"بطاقة"}\nالمجموع الكلي: ${totalAmount}$`:
+        `Your order is received!\nPayment method: ${paymentMethod==="cash"?"Cash":"Card"}\nTotal amount: ${totalAmount}$`));
+    clearCart();
+    document.getElementById("paymentDiv").style.display="none";
+}
+function toggleOrderType(){
+    const type = document.querySelector('input[name="orderType"]:checked').value;
+    document.getElementById("deliveryFields").style.display =
+        type === "delivery" ? "block" : "none";
+}
+// قراءة معلومات التواصل المخزنة في localStorage
+const contactInfo = JSON.parse(localStorage.getItem("contactInfo")) || {phone:"", email:"", location:""};
+
+// عرضها في footer
+document.getElementById("contactPhone").innerText = contactInfo.phone ? "رقم التواصل: " + contactInfo.phone : "";
+document.getElementById("contactEmail").innerText = contactInfo.email ? "البريد: " + contactInfo.email : "";
+document.getElementById("contactLocation").innerText = contactInfo.location ? "الموقع: " + contactInfo.location : "";
+
+</script>
+
+</body>
+</html>
